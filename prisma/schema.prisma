@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  name      String
+  lastname  String
+  email     String   @unique
+  password  String
+  status    Int
+  role      Rol      @default(USER)
+  token     String
+  confirmed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PayMethod {
+  id        Int      @id @default(autoincrement())
+  name      String
+  status    Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Factura {
+  id                 Int      @id @default(autoincrement())
+  idFonetFactura     Int      @unique
+  monto              Float
+  estado             String
+  impuesto           Float
+  status             Boolean  @default(false)
+  emitido            String
+  vencimiento        String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  pago               Pago?    @relation(fields: [idPago], references: [id])
+  idPago             Int?
+  idFonetClienteFact Int?
+  Cliente            Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId          Int
+}
+
+model Pago {
+  id          Int        @id @default(autoincrement())
+  tipo        tipoPago   @default(S)
+  fecha       DateTime   @default(now())
+  total       Float
+  detalle     String
+  status      statusPago @default(P)
+  cliente     Cliente    @relation(fields: [idCliente], references: [id])
+  idCliente   Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  factura     Factura[]
+  idtramite   String
+  referencia  String
+  statusBanco Int        @default(0)
+}
+
+model Cliente {
+  id             Int       @id @default(autoincrement())
+  dni            String    @unique
+  email          String    @unique
+  idFonetCliente Int       @unique
+  name           String
+  lastname       String
+  fullname       String
+  dir            String
+  telefono       String
+  movil          String
+  codigo         String
+  estado         String
+  status         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  pago           Pago[]
+  Factura        Factura[]
+}
+
+enum Rol {
+  USER
+  ADMIN
+  READ
+}
+
+enum tipoPago {
+  S
+  M
+}
+
+enum statusPago {
+  A // APROBADO
+  R // RECHAZADO
+  P // PENDIENTE
+}
